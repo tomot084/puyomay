@@ -599,7 +599,22 @@ function moveDown() {
 function rotatePuyo() {
     if (!gameRunning || isLocking || isPaused) return;
     const nr = (current.r + 1) % 4;
-    if (canMove(0, 0, nr)) current.r = nr;
+    if (canMove(0, 0, nr)) {
+        current.r = nr;
+        return;
+    }
+
+    // 壁際で回転できないときは、1マス横にずらす壁けりを試す
+    if (canMove(1, 0, nr)) {
+        current.x++;
+        current.r = nr;
+        return;
+    }
+
+    if (canMove(-1, 0, nr)) {
+        current.x--;
+        current.r = nr;
+    }
 }
 
 window.addEventListener('keydown', e => {
