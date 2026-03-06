@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+    <title>ちょっとした息抜きにぷよぷよで遊ばない？</title>
+    <style>
+        :root{
+            --panel-bg: rgba(0,0,0,0.58);
+            --yellow: #ffeb3b;
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            overscroll-behavior: none;
+            -webkit-text-size-adjust: 100%;
+            touch-action: manipulation;
+        }
+
+        body {
+            background-image: url('https://i.postimg.cc/QMJDKDr4/52695-0.jpg');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            text-align: center;
+            font-family: sans-serif;
+            min-height: 100dvh;
+            padding:
+                max(8px, env(safe-area-inset-top))
+                max(8px, env(safe-area-inset-right))
+                max(8px, env(safe-area-inset-bottom))
+                max(8px, env(safe-area-inset-left));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        h1 {
+            margin: 6px 0 4px;
+            font-size: clamp(18px, 4.8vw, 28px);
+            text-shadow: 2px 2px 4px #000;
+            line-height: 1.25;
+        }
+
+        .info {
+            font-size: clamp(22px, 5vw, 28px);
+            color: var(--yellow);
+            margin: 2px 0 4px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px #000;
+        }
+
+        #rensa-display {
+            font-size: clamp(20px, 4.8vw, 24px);
+            color: #ff5722;
+            font-weight: bold;
+            min-height: 28px;
+            margin-bottom: 4px;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        .game-layout {
+            width: min(100%, 430px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        #game-container {
+            position: relative;
+            width: min(58vw, 240px);
+            max-width: 240px;
+        }
+
+        #gameCanvas {
+            width: 100%;
+            height: auto;
+            display: block;
+            border: 8px solid rgba(255,255,255,0.82);
+            background: rgba(0,0,0,0.72);
+            border-radius: 15px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+        }
+
+        #start-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 15px;
+            z-index: 100;
+            padding: 12px;
+        }
+
+        .btn {
+            padding: 10px 14px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #333;
+            min-height: 44px;
+            min-width: 44px;
+            touch-action: manipulation;
+        }
+
+        #start-button {
+            background: var(--yellow);
+            font-size: 20px;
+        }
+
+        #side-panel {
+            width: min(100%, 360px);
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        #next-container {
+            background: var(--panel-bg);
+            padding: 8px 10px;
+            border-radius: 10px;
+            border: 4px solid var(--yellow);
+            width: 92px;
+        }
+
+        #next-container .label {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        #nextCanvas {
+            width: 60px;
+            height: 90px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        #pause-button {
+            background: #e3f2fd;
+            border: 2px solid #90caf9;
+            color: #1565c0;
+            font-size: 15px;
+            min-width: 110px;
+        }
+
+        .controls-text {
+            font-size: clamp(12px, 3.2vw, 15px);
+            background: var(--panel-bg);
+            padding: 8px 12px;
+            border-radius: 10px;
+            display: inline-block;
+            line-height: 1.45;
+            max-width: 100%;
+        }
+
+        .mobile-controls {
+            width: min(100%, 330px);
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .mobile-controls .btn {
+            background: rgba(255,255,255,0.92);
+            font-size: 22px;
+            min-height: 52px;
+        }
+
+        .mobile-controls .wide {
+            grid-column: span 3;
+            font-size: 16px;
+        }
+
+        @media (min-width: 700px) {
+            .game-layout {
+                width: min(100%, 760px);
+                flex-direction: row;
+                justify-content: center;
+                align-items: flex-start;
+                gap: 18px;
+            }
+
+            #side-panel {
+                width: auto;
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-start;
+                flex-wrap: nowrap;
+            }
+
+            .mobile-controls {
+                width: 240px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>ちょっとした息抜きにぷよぷよで遊ばない？</h1>
+    <div class="info">SCORE: <span id="score">0</span></div>
+    <div id="rensa-display"></div>
+
+    <div class="game-layout">
+        <div id="game-container">
+            <canvas id="gameCanvas" width="240" height="480"></canvas>
+            <div id="start-overlay">
+                <button id="start-button" class="btn">ゲームを開始</button>
+            </div>
+        </div>
+
+        <div id="side-panel">
+            <div id="next-container">
+                <div class="label">NEXT</div>
+                <canvas id="nextCanvas" width="80" height="120"></canvas>
+            </div>
+            <button id="pause-button" class="btn">一時停止</button>
+        </div>
+    </div>
+
+    <div class="mobile-controls">
+        <button id="left-btn" class="btn">←</button>
+        <button id="rotate-btn" class="btn">↻</button>
+        <button id="right-btn" class="btn">→</button>
+        <button id="down-btn" class="btn wide">↓ 落とす</button>
+    </div>
+
+    <div class="controls-text">
+        【iPhone】下のボタンで操作<br>
+        【PC】← →：移動 / ↓：加速 / ↑ または Z：回転
+    </div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const ncanvas = document.getElementById('nextCanvas');
+const nctx = ncanvas.getContext('2d');
+
+const ROWS = 12, COLS = 6, SIZE = 40;
+
+let score = 0;
+let board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+let current = { x: 2, y: 0, c1: 1, c2: 2, r: 0 };
+let nextPuyo = { c1: 1, c2: 2 };
+
+let isLocking = false;
+let gameRunning = false;
+let isPaused = false;
+let gameTickTimeout = null;
+let animationStarted = false;
+
+let effects = [];
+let chainCount = 0;
+let speechUnlocked = false;
+
+const imgs = [];
+const urls = [
+    "",
+    "https://i.postimg.cc/15qKK5Yz/puyo1-png.png",
+    "https://i.postimg.cc/50yBQxCN/puyo2-png.jpg",
+    "https://i.postimg.cc/c1KzVW5Q/puyo3-png.png",
+    "https://i.postimg.cc/yYcb8PKg/puyo4-png.png"
+];
+
+for (let i = 1; i <= 4; i++) {
+    imgs[i] = new Image();
+    imgs[i].src = urls[i];
+}
+
+const bgm = new Audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3");
+bgm.loop = true;
+bgm.volume = 0.2;
+bgm.preload = "auto";
+
+function unlockSpeech() {
+    if (speechUnlocked) return;
+    try {
+        const warmup = new SpeechSynthesisUtterance("");
+        warmup.volume = 0;
+        window.speechSynthesis.speak(warmup);
+        window.speechSynthesis.cancel();
+        speechUnlocked = true;
+    } catch (e) {}
+}
+
+function playEatMeVoice() {
+    try {
+        unlockSpeech();
+        window.speechSynthesis.cancel();
+        const uttr = new SpeechSynthesisUtterance("Eat me!");
+        uttr.lang = "en-US";
+        uttr.pitch = 2.0;
+        uttr.rate = 1.2;
+        uttr.volume = 1.0;
+        window.speechSynthesis.speak(uttr);
+    } catch (e) {}
+}
+
+function preventScroll(e) {
+    e.preventDefault();
+}
+
+document.addEventListener("touchmove", preventScroll, { passive: false });
+document.addEventListener("gesturestart", preventScroll, { passive: false });
+document.addEventListener("dblclick", preventScroll, { passive: false });
+
+document.getElementById('start-button').addEventListener('click', startGameFromUI);
+document.getElementById('pause-button').addEventListener('click', togglePause);
+
+function startGameFromUI() {
+    document.getElementById('start-overlay').style.display = 'none';
+    unlockSpeech();
+    bgm.play().catch(() => {});
+    gameRunning = true;
+    isPaused = false;
+    document.getElementById('pause-button').innerText = "一時停止";
+    resetGame();
+}
+
+function togglePause() {
+    if (!gameRunning) return;
+    isPaused = !isPaused;
+    this.innerText = isPaused ? "再開" : "一時停止";
+
+    if (!isPaused) {
+        bgm.play().catch(() => {});
+        gameTick();
+    } else {
+        bgm.pause();
+    }
+}
+
+function resetGame() {
+    board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+    score = 0;
+    chainCount = 0;
+    effects = [];
+    document.getElementById('score').innerText = score;
+    document.getElementById('rensa-display').innerText = "";
+
+    nextPuyo = {
+        c1: Math.floor(Math.random() * 4) + 1,
+        c2: Math.floor(Math.random() * 4) + 1
+    };
+
+    spawnPuyo();
+
+    if (gameTickTimeout) clearTimeout(gameTickTimeout);
+    gameTick();
+
+    if (!animationStarted) {
+        animationStarted = true;
+        animate();
+    }
+}
+
+function spawnPuyo() {
+    current = { x: 2, y: 0, c1: nextPuyo.c1, c2: nextPuyo.c2, r: 0 };
+    nextPuyo = {
+        c1: Math.floor(Math.random() * 4) + 1,
+        c2: Math.floor(Math.random() * 4) + 1
+    };
+    chainCount = 0;
+    document.getElementById('rensa-display').innerText = "";
+    drawNext();
+}
+
+function drawNext() {
+    nctx.clearRect(0, 0, ncanvas.width, ncanvas.height);
+    drawBlock(1, 0.5, nextPuyo.c2, nctx);
+    drawBlock(1, 1.5, nextPuyo.c1, nctx);
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+            if (board[r][c]) drawBlock(c, r, board[r][c], ctx);
+        }
+    }
+
+    if (gameRunning && !isLocking) {
+        drawBlock(current.x, current.y, current.c1, ctx);
+        const p2 = getRotPos();
+        drawBlock(p2.x, p2.y, current.c2, ctx);
+    }
+
+    const now = Date.now();
+    effects = effects.filter(e => now - e.time < 300);
+
+    effects.forEach(e => {
+        const p = (now - e.time) / 300;
+        ctx.fillStyle = `rgba(255,255,255,${1 - p})`;
+        ctx.beginPath();
+        ctx.arc(e.x * SIZE + SIZE / 2, e.y * SIZE + SIZE / 2, (SIZE / 2) * (1 + p * 2), 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    if (isPaused) {
+        ctx.fillStyle = "rgba(0,0,0,0.5)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "white";
+        ctx.font = "bold 30px sans-serif";
+        ctx.fillText("PAUSE", 68, 240);
+    }
+}
+
+function animate() {
+    draw();
+    requestAnimationFrame(animate);
+}
+
+function drawBlock(x, y, idx, targetCtx) {
+    if (y < -1) return;
+    targetCtx.save();
+    targetCtx.beginPath();
+    targetCtx.arc(x * SIZE + SIZE / 2, y * SIZE + SIZE / 2, SIZE / 2 - 2, 0, Math.PI * 2);
+    targetCtx.clip();
+
+    if (imgs[idx] && imgs[idx].complete && imgs[idx].naturalWidth > 0) {
+        targetCtx.drawImage(imgs[idx], x * SIZE, y * SIZE, SIZE, SIZE);
+    } else {
+        targetCtx.fillStyle = ["", "red", "lime", "blue", "yellow"][idx];
+        targetCtx.fillRect(x * SIZE, y * SIZE, SIZE, SIZE);
+    }
+    targetCtx.restore();
+}
+
+function getRotPos() {
+    const off = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+    return { x: current.x + off[current.r][0], y: current.y + off[current.r][1] };
+}
+
+function canMove(dx, dy, nr = current.r) {
+    const off = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+    const x1 = current.x + dx;
+    const y1 = current.y + dy;
+    const x2 = x1 + off[nr][0];
+    const y2 = y1 + off[nr][1];
+    const pts = [{ x: x1, y: y1 }, { x: x2, y: y2 }];
+
+    return pts.every(p =>
+        p.x >= 0 &&
+        p.x < COLS &&
+        p.y < ROWS &&
+        (p.y < 0 || !board[p.y][p.x])
+    );
+}
+
+async function gameTick() {
+    if (!gameRunning || isPaused) return;
+
+    if (canMove(0, 1)) {
+        current.y++;
+    } else {
+        isLocking = true;
+
+        if (current.y >= 0) board[current.y][current.x] = current.c1;
+        const p2 = getRotPos();
+        if (p2.y >= 0) board[p2.y][p2.x] = current.c2;
+
+        while (await checkAndErase()) {}
+
+        if (board[0][2]) {
+            gameRunning = false;
+            bgm.pause();
+            setTimeout(() => {
+                alert("Game Over! Score: " + score);
+                document.getElementById('start-overlay').style.display = 'flex';
+            }, 50);
+            return;
+        }
+
+        spawnPuyo();
+        isLocking = false;
+    }
+
+    gameTickTimeout = setTimeout(gameTick, 800);
+}
+
+async function checkAndErase() {
+    let fell = false;
+
+    for (let c = 0; c < COLS; c++) {
+        for (let r = ROWS - 1; r > 0; r--) {
+            if (!board[r][c] && board[r - 1][c]) {
+                board[r][c] = board[r - 1][c];
+                board[r - 1][c] = 0;
+                fell = true;
+                r = ROWS;
+            }
+        }
+    }
+
+    if (fell) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    let toErase = [];
+    const checked = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
+
+    for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+            if (board[r][c] && !checked[r][c]) {
+                const color = board[r][c];
+                const group = [];
+                const stack = [{ r, c }];
+
+                while (stack.length) {
+                    const p = stack.pop();
+                    if (
+                        p.r < 0 || p.r >= ROWS ||
+                        p.c < 0 || p.c >= COLS ||
+                        checked[p.r][p.c] ||
+                        board[p.r][p.c] !== color
+                    ) continue;
+
+                    checked[p.r][p.c] = true;
+                    group.push(p);
+                    stack.push(
+                        { r: p.r + 1, c: p.c },
+                        { r: p.r - 1, c: p.c },
+                        { r: p.r, c: p.c + 1 },
+                        { r: p.r, c: p.c - 1 }
+                    );
+                }
+
+                if (group.length >= 4) {
+                    toErase.push(...group);
+                }
+            }
+        }
+    }
+
+    if (toErase.length > 0) {
+        chainCount++;
+        document.getElementById('rensa-display').innerText = chainCount + " RENSA!";
+
+        toErase.forEach(p => {
+            effects.push({ x: p.c, y: p.r, time: Date.now() });
+            board[p.r][p.c] = 0;
+        });
+
+        score += (toErase.length * 10) * Math.pow(2, chainCount - 1);
+        document.getElementById('score').innerText = score;
+
+        playEatMeVoice();
+        await new Promise(resolve => setTimeout(resolve, 400));
+        return true;
+    }
+
+    return fell;
+}
+
+function moveLeft() {
+    if (!gameRunning || isLocking || isPaused) return;
+    if (canMove(-1, 0)) current.x--;
+}
+
+function moveRight() {
+    if (!gameRunning || isLocking || isPaused) return;
+    if (canMove(1, 0)) current.x++;
+}
+
+function moveDown() {
+    if (!gameRunning || isLocking || isPaused) return;
+    if (canMove(0, 1)) current.y++;
+}
+
+function rotatePuyo() {
+    if (!gameRunning || isLocking || isPaused) return;
+    const nr = (current.r + 1) % 4;
+    if (canMove(0, 0, nr)) current.r = nr;
+}
+
+window.addEventListener('keydown', e => {
+    if (!gameRunning || isLocking || isPaused) return;
+    const k = e.key.toLowerCase();
+
+    if (k === 'arrowleft') {
+        e.preventDefault();
+        moveLeft();
+    } else if (k === 'arrowright') {
+        e.preventDefault();
+        moveRight();
+    } else if (k === 'arrowdown') {
+        e.preventDefault();
+        moveDown();
+    } else if (k === 'z' || k === 'arrowup') {
+        e.preventDefault();
+        rotatePuyo();
+    }
+});
+
+function bindPress(id, handler) {
+    const el = document.getElementById(id);
+    el.addEventListener('pointerdown', e => {
+        e.preventDefault();
+        handler();
+    });
+    el.addEventListener('click', e => {
+        e.preventDefault();
+        handler();
+    });
+}
+
+bindPress('left-btn', moveLeft);
+bindPress('right-btn', moveRight);
+bindPress('down-btn', moveDown);
+bindPress('rotate-btn', rotatePuyo);
+
+drawNext();
+draw();
+</script>
+</body>
+</html>
