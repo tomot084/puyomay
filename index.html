@@ -46,25 +46,25 @@
         }
 
         h1 {
-            margin: 6px 0 4px;
-            font-size: clamp(18px, 4.8vw, 28px);
+            margin: 4px 0 2px;
+            font-size: clamp(16px, 4.4vw, 26px);
             text-shadow: 2px 2px 4px #000;
-            line-height: 1.25;
+            line-height: 1.2;
         }
 
         .info {
-            font-size: clamp(22px, 5vw, 28px);
+            font-size: clamp(20px, 4.8vw, 28px);
             color: var(--yellow);
-            margin: 2px 0 4px;
+            margin: 0 0 2px;
             font-weight: bold;
             text-shadow: 2px 2px 4px #000;
         }
 
         #rensa-display {
-            font-size: clamp(20px, 4.8vw, 24px);
+            font-size: clamp(18px, 4.4vw, 24px);
             color: #ff5722;
             font-weight: bold;
-            min-height: 28px;
+            min-height: 24px;
             margin-bottom: 4px;
             text-shadow: 1px 1px 2px #000;
         }
@@ -74,15 +74,24 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             flex: 1;
             min-height: 0;
+        }
+
+        .play-area {
+            width: min(100%, 430px);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 10px;
         }
 
         #game-container {
             position: relative;
             width: min(58vw, 240px);
             max-width: 240px;
+            flex: 0 0 auto;
         }
 
         #gameCanvas {
@@ -126,24 +135,24 @@
         }
 
         #side-panel {
-            width: min(100%, 360px);
             display: flex;
-            justify-content: center;
-            align-items: stretch;
-            gap: 10px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+            flex: 0 0 auto;
+            width: 92px;
         }
 
         #next-container {
             background: var(--panel-bg);
-            padding: 8px 10px;
+            padding: 8px 8px 6px;
             border-radius: 10px;
             border: 4px solid var(--yellow);
             width: 92px;
         }
 
         #next-container .label {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: bold;
             margin-bottom: 4px;
         }
@@ -159,18 +168,9 @@
             background: #e3f2fd;
             border: 2px solid #90caf9;
             color: #1565c0;
-            font-size: 15px;
-            min-width: 110px;
-        }
-
-        .controls-text {
-            font-size: clamp(12px, 3.2vw, 15px);
-            background: var(--panel-bg);
-            padding: 8px 12px;
-            border-radius: 10px;
-            display: inline-block;
-            line-height: 1.45;
-            max-width: 100%;
+            font-size: 14px;
+            width: 92px;
+            padding: 10px 4px;
         }
 
         .mobile-controls {
@@ -178,11 +178,11 @@
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 8px;
-            margin-bottom: 6px;
+            margin-top: 2px;
         }
 
         .mobile-controls .btn {
-            background: rgba(255,255,255,0.92);
+            background: rgba(255,255,255,0.94);
             font-size: 22px;
             min-height: 52px;
         }
@@ -192,25 +192,37 @@
             font-size: 16px;
         }
 
-        @media (min-width: 700px) {
-            .game-layout {
-                width: min(100%, 760px);
-                flex-direction: row;
-                justify-content: center;
-                align-items: flex-start;
-                gap: 18px;
+        @media (max-width: 360px) {
+            #game-container {
+                width: min(56vw, 220px);
             }
 
             #side-panel {
+                width: 84px;
+            }
+
+            #next-container,
+            #pause-button {
+                width: 84px;
+            }
+
+            #nextCanvas {
+                width: 54px;
+                height: 81px;
+            }
+        }
+
+        @media (min-width: 700px) {
+            .game-layout {
+                width: min(100%, 760px);
+            }
+
+            .play-area {
                 width: auto;
-                flex-direction: column;
-                align-items: center;
-                justify-content: flex-start;
-                flex-wrap: nowrap;
             }
 
             .mobile-controls {
-                width: 240px;
+                width: 330px;
             }
         }
     </style>
@@ -221,32 +233,29 @@
     <div id="rensa-display"></div>
 
     <div class="game-layout">
-        <div id="game-container">
-            <canvas id="gameCanvas" width="240" height="480"></canvas>
-            <div id="start-overlay">
-                <button id="start-button" class="btn">ゲームを開始</button>
+        <div class="play-area">
+            <div id="game-container">
+                <canvas id="gameCanvas" width="240" height="480"></canvas>
+                <div id="start-overlay">
+                    <button id="start-button" class="btn">ゲームを開始</button>
+                </div>
+            </div>
+
+            <div id="side-panel">
+                <div id="next-container">
+                    <div class="label">NEXT</div>
+                    <canvas id="nextCanvas" width="80" height="120"></canvas>
+                </div>
+                <button id="pause-button" class="btn">一時停止</button>
             </div>
         </div>
 
-        <div id="side-panel">
-            <div id="next-container">
-                <div class="label">NEXT</div>
-                <canvas id="nextCanvas" width="80" height="120"></canvas>
-            </div>
-            <button id="pause-button" class="btn">一時停止</button>
+        <div class="mobile-controls">
+            <button id="left-btn" class="btn">←</button>
+            <button id="rotate-btn" class="btn">↻</button>
+            <button id="right-btn" class="btn">→</button>
+            <button id="down-btn" class="btn wide">↓ 落とす</button>
         </div>
-    </div>
-
-    <div class="mobile-controls">
-        <button id="left-btn" class="btn">←</button>
-        <button id="rotate-btn" class="btn">↻</button>
-        <button id="right-btn" class="btn">→</button>
-        <button id="down-btn" class="btn wide">↓ 落とす</button>
-    </div>
-
-    <div class="controls-text">
-        【iPhone】下のボタンで操作<br>
-        【PC】← →：移動 / ↓：加速 / ↑ または Z：回転
     </div>
 
 <script>
@@ -612,22 +621,35 @@ window.addEventListener('keydown', e => {
     }
 });
 
-function bindPress(id, handler) {
+function bindTap(id, handler) {
     const el = document.getElementById(id);
+    let pressed = false;
+
     el.addEventListener('pointerdown', e => {
         e.preventDefault();
+        if (pressed) return;
+        pressed = true;
         handler();
     });
-    el.addEventListener('click', e => {
+
+    el.addEventListener('pointerup', e => {
         e.preventDefault();
-        handler();
+        pressed = false;
+    });
+
+    el.addEventListener('pointercancel', () => {
+        pressed = false;
+    });
+
+    el.addEventListener('pointerleave', () => {
+        pressed = false;
     });
 }
 
-bindPress('left-btn', moveLeft);
-bindPress('right-btn', moveRight);
-bindPress('down-btn', moveDown);
-bindPress('rotate-btn', rotatePuyo);
+bindTap('left-btn', moveLeft);
+bindTap('right-btn', moveRight);
+bindTap('down-btn', moveDown);
+bindTap('rotate-btn', rotatePuyo);
 
 drawNext();
 draw();
